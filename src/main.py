@@ -16,7 +16,16 @@ class PasswordManager:
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
 
+    def menu(self) -> None:
+        """ To print the usable command (menu) """
+        print("\n1. To add a new password.")
+        print("2. To read your password.")
+        print("3. To update your password.")
+        print("4. Exit.\n")
+
+
 def main():
+    manager = PasswordManager()
     print("""
             #########################################
             #                                       #
@@ -24,19 +33,22 @@ def main():
             #                                       #
             #########################################
             """)
-
+    manager.menu()
+    print("Type the number of the command to execute that command!")
     while True:
-        commandEntered = input("command-$ ")
+        command = input("command-$ ")
 
-        if commandEntered.lower() == "e" or commandEntered.lower() == "exit":
+        if command.lower() == "4" or command.lower() == "exit":
             print("\n[MESSAGE] - Have a nice day!\n")
             break
-        elif commandEntered.lower() == "n":
+        elif command.lower() == "1":
             print("\n[MESSAGE] - Data successfully added to database!\n")
-        elif commandEntered.lower() == "g":
+        elif command.lower() == "2":
             print("\n[MESSAGE] - Your data!\n")
-        elif commandEntered.lower() == "u":
+        elif command.lower() == "3":
             print("\n[MESSAGE] - Data updated successfully\n")
+        elif command.lower() == "help":
+            manager.menu()
 
 if __name__ == "__main__":
     main()
