@@ -1,11 +1,13 @@
 # AUTHOR - rajkaran
 # YEAR - 2022 ;)
 
+# External module
 import psycopg2
 from psycopg2 import sql
 from tabulate import tabulate
+
+# internal module
 from config import config
-from tabulate import tabulate
 
 class PasswordManager:
 
@@ -88,6 +90,23 @@ class PasswordManager:
         
         return data
 
+    def delete(self, ID) -> bool:
+        """ Function to delete row (password) from database """
+        psql_delete_command = "DELETE FROM {} WHERE id = %s"
+        try:
+            cur = self.connection.cursor()
+            cur.execute(sql.SQL(psql_delete_command).format(sql.Identifier(self.user)), [ID])
+            self.connection.commit()
+            cur.close()
+
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+            return False
+        return True
+
+    def print_password(self) -> bool:
+        print(tabulate(self.get_data(), headers=["ID", "UserName", "email", "Password", "Website"]))
+
 def main():
     manager = PasswordManager()
     print("""
@@ -120,10 +139,21 @@ def main():
 
                 case "2":
                     print("\n>>Your data!\n")
-                    print(tabulate(manager.get_data(), headers=["ID", "UserName", "email", "Password", "Website"]))
+                    manager.print_password()
 
                 case "3":
                     print("\n>>Data updated successfully\n")
+
+                case "4":
+                    manager.print_password()
+                    try:
+                        ID = int(input("\nEnter ID of the password which you want to delete: "))
+                        if manager.delete(ID):
+                            print("\n>>Data deleted successfully")
+                        else:
+                            print("\n>>Something went wrong!")
+                    except Exception as e:
+                        print("\n>>Only Enter ID of the password!\n")
 
                 case "help":
                     manager.menu()
