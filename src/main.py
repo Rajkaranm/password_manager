@@ -5,6 +5,7 @@ import psycopg2
 from psycopg2 import sql
 from tabulate import tabulate
 from config import config
+from tabulate import tabulate
 
 class PasswordManager:
 
@@ -26,7 +27,8 @@ class PasswordManager:
         print("\n1. To add a new password.")
         print("2. To read your password.")
         print("3. To update your password.")
-        print("4. Exit.\n")
+        print("4. To delete your password.")
+        print("5. Exit.\n")
 
     def insert(self, user_name, email, password, website) -> bool:
         """ Function to insert password details into database """
@@ -65,6 +67,27 @@ class PasswordManager:
         cur.close()
         return bool(cur.rowcount)
 
+    def get_data(self):
+        """ Function to get data from the database """
+        psql_command = "SELECT * FROM {};"
+        data = []
+
+        try:
+            cur = self.connection.cursor()
+            cur.execute(sql.SQL(psql_command).format(sql.Identifier(self.user)))
+            row = cur.fetchone()
+
+            for _ in range(cur.rowcount):
+                data.append(list(row))
+                row = cur.fetchone()
+
+            cur.close()
+
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+        
+        return data
+
 def main():
     manager = PasswordManager()
     print("""
@@ -73,16 +96,16 @@ def main():
             #       Matrix Password Manager         #
             #                                       #
             #########################################
-            """)
+    """)
     manager.menu()
-    print("Type the number of the command to execute that command!")
+    print(">>Type the number of the command to execute that command!\n")
     while True:
         try:
             command = input("command-$ ")
 
             match command:
-                case "4" | "exit":
-                    print("\n[MESSAGE] - Have a nice day!\n")
+                case "5" | "exit":
+                    print("\n>>Have a nice day!\n")
                     break
                 case "1":
                     user_name = input("Enter your user name: ")
@@ -91,15 +114,16 @@ def main():
                     website = input("Enter name of website: ")
 
                     if manager.insert(user_name, email, password, website):
-                        print("\n[MESSAGE] - Data successfully added to database!\n")
+                        print("\n>>Data successfully added to database!\n")
                     else:
-                        print("\n[MESSAGE] - Something went wrong!")
+                        print("\n>>Something went wrong!")
 
                 case "2":
-                    print("\n[MESSAGE] - Your data!\n")
+                    print("\n>>Your data!\n")
+                    print(tabulate(manager.get_data(), headers=["ID", "UserName", "email", "Password", "Website"]))
 
                 case "3":
-                    print("\n[MESSAGE] - Data updated successfully\n")
+                    print("\n>>Data updated successfully\n")
 
                 case "help":
                     manager.menu()
