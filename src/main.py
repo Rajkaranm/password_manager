@@ -6,8 +6,11 @@ import psycopg2
 from psycopg2 import sql
 from tabulate import tabulate
 
-# internal module
+# Internal module
 from config import config
+import random
+import subprocess
+import platform
 
 class PasswordManager:
 
@@ -30,7 +33,7 @@ class PasswordManager:
         print("2. To read your password.")
         print("3. To update your password.")
         print("4. To delete your password.")
-        print("5. Exit.\n")
+        print("Enter 'e' or 'exit' to exit.\n")
 
     def insert(self, user_name, email, password, website) -> bool:
         """ Function to insert password details into database """
@@ -69,7 +72,7 @@ class PasswordManager:
         cur.close()
         return bool(cur.rowcount)
 
-    def get_data(self):
+    def get_data(self) -> list:
         """ Function to get data from the database """
         psql_command = "SELECT * FROM {};"
         data = []
@@ -104,9 +107,43 @@ class PasswordManager:
             return False
         return True
 
+    def update(self, ID, password) -> bool:
+        """ Function to update password in database """
+        psql_update_command = """UPDATE {}
+                                SET password = %s
+                                WHERE id = %s
+        """
+        try:
+            cur = self.connection.cursor()
+            cur.execute(sql.SQL(psql_update_command).format(sql.Identifier(self.user)), [password, ID])
+            self.connection.commit()
+            cur.close()
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+            return False
+        return True
+
     def print_password(self) -> bool:
         print(tabulate(self.get_data(), headers=["ID", "UserName", "email", "Password", "Website"]))
 
+# Function  to generate random password
+def generate_random_password(length):
+    characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%&amp;*1234567890"
+    password = ""
+    for i in range(length + 1):
+        password += random.choice(characters)
+    return password
+
+# python program to copy password to clipboard
+def copy2clip(txt):
+    if platform.system() == 'Windows':
+        cmd='echo ' + txt.strip() + '| clip'
+    elif platform.system() == 'Darwin':
+        cmd='echo ' + txt.strip() + '| pbcopy'
+    
+    return subprocess.check_call(cmd, shell=True)
+
+# Main function (Execution start from here)
 def main():
     manager = PasswordManager()
     print("""
@@ -123,14 +160,22 @@ def main():
             command = input("command-$ ")
 
             match command:
-                case "5" | "exit":
+                case "e" | "exit":
                     print("\n>>Have a nice day!\n")
                     break
                 case "1":
-                    user_name = input("Enter your user name: ")
-                    email = input("Enter your email: ")
-                    password = input("Enter your password: ")
-                    website = input("Enter name of website: ")
+                    to_generate_passwd = input("Do you want to generate random password (Y/n): ")
+                    if to_generate_passwd.lower() == "y":
+                        length = int(input("Enter the length of the password: "))
+                        user_name = input("Enter your user name: ")
+                        email = input("Enter your email: ")
+                        password = generate_random_password(length)
+                        website = input("Enter name of website: ")
+                    else:
+                        user_name = input("Enter your user name: ")
+                        email = input("Enter your email: ")
+                        password = input("Enter your password: ")
+                        website = input("Enter name of website: ")
 
                     if manager.insert(user_name, email, password, website):
                         print("\n>>Data successfully added to database!\n")
@@ -142,7 +187,12 @@ def main():
                     manager.print_password()
 
                 case "3":
-                    print("\n>>Data updated successfully\n")
+                    ID = int(input(">>Enter ID of password which you want to update: "))
+                    password = input("Now Enter the password: ")
+                    if manager.update(ID, password):
+                        print("\n>>Data updated successfully\n")
+                    else:
+                        print("\n>>Something went wrong!")
 
                 case "4":
                     manager.print_password()
