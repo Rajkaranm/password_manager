@@ -5,11 +5,8 @@ class Cryptography:
         print(len(self.characters))
         key_index = self.get_index(key)
         plain_text_index = self.get_index(plain_text)
-        print(plain_text_index)
         cipher_index = self.shift_values(plain_text_index, key_index)
-        print(cipher_index)
         cipher_index = self.balance(cipher_index)
-        print("balance", cipher_index)
 
         cipher_text = ""
         for i in range(len(cipher_index)):
@@ -46,10 +43,8 @@ class Cryptography:
     def balance(self, indexs):
         for i in range(len(indexs)):
             if indexs[i] >= 70:
-                print(i)
                 indexs[i] = indexs[i] - 70
             elif indexs[i] < 0:
-                print(i)
                 indexs[i] = indexs[i] + 70
 
         return indexs
@@ -62,10 +57,6 @@ class Cryptography:
                     index.append(j)
 
         return index
+
 if __name__ == "__main__":
-    crypto = Cryptography()
-    plain_text = "BantuPostgres69Go"
-    print(plain_text)
-    result = crypto.Encrypt(plain_text, "8f05b")
-    print(result)
-    print(crypto.Decrypt(result, "8f05b"))
+    pass

@@ -22,13 +22,13 @@ class PasswordManager:
         self.user = input("Enter your user name: ")
         self.master_passwd = hashlib.sha384(input("Enter the master password: ").encode()).hexdigest()
         self.key = self.master_passwd[41:-50]
-        print(self.key)
         self.user_present = False
         self.crypto = Cryptography()
+        self.password = input("Enter password: ")
 
         # Getting parameters from config file
         params = config()
-        params['password'] = self.crypto.Decrypt(params['password'], self.key)
+        params['password'] = self.password
 
         try:
             # Connecting to database
