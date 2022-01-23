@@ -22,6 +22,7 @@ class PasswordManager:
         self.user = input("Enter your user name: ")
         self.master_passwd = hashlib.sha384(input("Enter the master password: ").encode()).hexdigest()
         self.key = self.master_passwd[41:-50]
+        print(self.key)
         self.user_present = False
         self.crypto = Cryptography()
 
@@ -34,7 +35,7 @@ class PasswordManager:
             self.connection = psycopg2.connect(**params)
 
 
-        except (Exception, psycopg2.DatabaseError) as error:
+        except (Exception, psycopg2.DatabaseError):
             pass
         
         try:
@@ -67,8 +68,7 @@ class PasswordManager:
                                         email VARCHAR(100),
                                         password VARCHAR(100) NOT NULL,
                                         website VARCHAR(100) NOT NULL
-                                        ); 
-                                    """
+                                        );"""
         cur = self.connection.cursor()
         try:
             if self.table_exits(self.user):
