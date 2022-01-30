@@ -16,6 +16,7 @@ import hashlib
 from user import User
 from crypto import Cryptography 
 
+
 class PasswordManager:
 
     def __init__(self):
@@ -76,8 +77,10 @@ class PasswordManager:
             else:
                 cur.execute(sql.SQL(psql_table_create_command).format(sql.Identifier(self.user)))
                 cur.execute(sql.SQL(psql_insert_command).format(sql.Identifier(self.user)), [user_name, email, password, website])
+
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
+            cur.close()
             return False
 
         self.connection.commit()
@@ -97,20 +100,20 @@ class PasswordManager:
         """ Function to get data from the database """
         psql_command = "SELECT * FROM {};"
         data = []
-
-        try:
-            cur = self.connection.cursor()
-            cur.execute(sql.SQL(psql_command).format(sql.Identifier(self.user)))
-            row = cur.fetchone()
-
-            for _ in range(cur.rowcount):
-                data.append(list(row))
+        if self.table_exits(self.user):
+            try:
+                cur = self.connection.cursor()
+                cur.execute(sql.SQL(psql_command).format(sql.Identifier(self.user)))
                 row = cur.fetchone()
 
-            cur.close()
+                for _ in range(cur.rowcount):
+                    data.append(list(row))
+                    row = cur.fetchone()
 
-        except (Exception, psycopg2.DatabaseError) as error:
-            print(error)
+                cur.close()
+
+            except (Exception, psycopg2.DatabaseError) as error:
+                print(error)
 
         for j in range(len(data)):
             data[j][3] = self.crypto.Decrypt(data[j][3], self.key)
@@ -152,6 +155,10 @@ class PasswordManager:
         print(tabulate(self.get_data(), headers=["ID", "UserName", "email", "Password", "Website"]))
         print("\n\n")
 
+    def get_user(self) -> str:
+        """ Method to get user name """
+        return self.user
+
 # Function  to generate random password
 def generate_random_password(length):
     characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%&amp;*1234567890"
@@ -185,7 +192,7 @@ def main():
         print(">>Type the number of the command to execute that command!\n")
         while True:
             try:
-                command = input("command-$ ")
+                command = input(f"{manager.get_user()}-#")
 
                 match command:
                     case "e" | "exit":
